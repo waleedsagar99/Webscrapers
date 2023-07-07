@@ -1,0 +1,64 @@
+require 'nokogiri'
+require 'open-uri'
+require 'webdrivers'
+require 'capybara'
+
+Capybara.register_driver :firefox do |app|
+	client = Selenium::WebDriver::Remote::Http::Default.new
+	client.read_timeout = 260
+
+	Capybara::Selenium::Driver.new(app, {browser: :firefox, http_client: client})
+end
+String Text=''
+New_Text = []
+company_array = []
+String company=''
+String city_array=[]
+post_date=[]
+String feature_img_array = []
+$d = DateTime.now
+doc = Nokogiri::HTML(URI.open('https://www.jobz.pk/'));
+link = doc.search('.cell1')
+i=0
+j = link.length-10
+
+while i!=j
+	if !link[i].children[1].nil?
+		
+		Text = link[i].children[1].text.strip
+		
+		New_Text[i] = Text
+
+		link2 = doc.search('.cell2')
+
+		company_array[i] = link2[i].children.text.strip
+
+		link3 = doc.search('.cell_three')
+
+		city_array[i] = link3[i].children[1].text.strip
+
+		post_date[i] = link3[i].children[3].text.strip
+
+		doc2 = Nokogiri::HTML(URI.open(link[i].children[1].attributes["href"].value));
+
+		gh = doc2.search('div#ad-pic-cont')
+		if !gh.empty?
+			img_url =  gh[0].children[1].attributes['href'].value
+			read_image = URI.open(img_url).read
+			File.open("D:/jobzpk/#{Text}.jpg", "wb") do |file|
+						file.write read_image
+					end	
+		else
+			New_Text.delete_at(i)
+			city_array.delete_at(i)
+			post_date.delete_at(i)
+		end
+	end
+
+	i=i+1
+	puts i
+end	
+New_Text.delete(nil)
+post_date.delete(nil)
+city_array.delete(nil)
+company_array.delete(nil)
